@@ -1,709 +1,707 @@
-‎<!DOCTYPE html>
-‎<html lang="en">
-‎<head>
-‎    <meta charset="UTF-8">
-‎    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-‎    <title>KlashGPT WORLD</title>
-‎    <style>
-‎        :root {
-‎            --bg-color: #07090e;
-‎            --chat-bg: #0d1117;
-‎            --input-bg: #161b22;
-‎            --text-color: #e6edfd;
-‎            --text-secondary: #8b949e;
-‎            --user-bubble: #238636;
-‎            --ai-bubble: #161b22;
-‎            --border-color: #30363d;
-‎            --accent-color: #58a6ff;
-‎            --danger-color: #da3633;
-‎        }
-‎
-‎        * {
-‎            box-sizing: border-box;
-‎            margin: 0;
-‎            padding: 0;
-‎            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-‎        }
-‎
-‎        body {
-‎            background-color: var(--bg-color);
-‎            color: var(--text-color);
-‎            display: flex;
-‎            height: 100vh;
-‎            overflow: hidden;
-‎        }
-‎
-‎        /* Sidebar Drawer */
-‎        #drawer {
-‎            width: 280px;
-‎            background-color: var(--chat-bg);
-‎            border-right: 1px solid var(--border-color);
-‎            display: flex;
-‎            flex-direction: column;
-‎            transition: transform 0.3s ease;
-‎            z-index: 100;
-‎        }
-‎
-‎        #drawer.closed {
-‎            transform: translateX(-100%);
-‎            position: absolute;
-‎            height: 100%;
-‎        }
-‎
-‎        .drawer-header {
-‎            padding: 15px;
-‎            border-bottom: 1px solid var(--border-color);
-‎            display: flex;
-‎            justify-content: space-between;
-‎            align-items: center;
-‎        }
-‎
-‎        .drawer-header h2 {
-‎            font-size: 1rem;
-‎            color: var(--accent-color);
-‎        }
-‎
-‎        .new-chat-btn {
-‎            background: var(--user-bubble);
-‎            color: white;
-‎            border: none;
-‎            padding: 10px 15px;
-‎            border-radius: 8px;
-‎            cursor: pointer;
-‎            font-weight: bold;
-‎            margin: 15px;
-‎            font-size: 0.9rem;
-‎        }
-‎
-‎        .new-chat-btn:hover {
-‎            background: #2ea043;
-‎        }
-‎
-‎        .chat-history-list {
-‎            flex: 1;
-‎            overflow-y: auto;
-‎            padding: 0 15px;
-‎            display: flex;
-‎            flex-direction: column;
-‎            gap: 8px;
-‎        }
-‎
-‎        .history-item {
-‎            background: var(--bg-color);
-‎            padding: 10px;
-‎            border-radius: 6px;
-‎            font-size: 0.85rem;
-‎            cursor: pointer;
-‎            border: 1px solid var(--border-color);
-‎            white-space: nowrap;
-‎            overflow: hidden;
-‎            text-overflow: ellipsis;
-‎        }
-‎
-‎        .history-item:hover {
-‎            background: #3c444d;
-‎        }
-‎
-‎        .user-profile-section {
-‎            padding: 15px;
-‎            border-top: 1px solid var(--border-color);
-‎            display: flex;
-‎            align-items: center;
-‎            gap: 10px;
-‎            font-size: 0.85rem;
-‎        }
-‎
-‎        .avatar {
-‎            width: 32px;
-‎            height: 32px;
-‎            border-radius: 50%;
-‎            background: #db61a2;
-‎            display: flex;
-‎            align-items: center;
-‎            justify-content: center;
-‎            font-weight: bold;
-‎            color: white;
-‎        }
-‎
-‎        /* Main Content Area */
-‎        .main-content {
-‎            flex: 1;
-‎            display: flex;
-‎            flex-direction: column;
-‎            height: 100vh;
-‎            overflow: hidden;
-‎            position: relative;
-‎        }
-‎
-‎        header {
-‎            background-color: transparent;
-‎            padding: 15px 20px;
-‎            display: flex;
-‎            justify-content: space-between;
-‎            align-items: center;
-‎            z-index: 10;
-‎        }
-‎
-‎        .header-left {
-‎            display: flex;
-‎            align-items: center;
-‎            gap: 15px;
-‎        }
-‎
-‎        .drawer-toggle {
-‎            background: none;
-‎            border: none;
-‎            color: var(--text-color);
-‎            font-size: 1.3rem;
-‎            cursor: pointer;
-‎        }
-‎
-‎        .model-selector {
-‎            font-size: 1.1rem;
-‎            font-weight: 500;
-‎            color: var(--text-color);
-‎            display: flex;
-‎            align-items: center;
-‎            gap: 5px;
-‎            background: none;
-‎            border: none;
-‎            cursor: pointer;
-‎        }
-‎
-‎        .header-right {
-‎            display: flex;
-‎            align-items: center;
-‎            gap: 12px;
-‎        }
-‎
-‎        /* Key Bucket Button */
-‎        .status-badge {
-‎            font-size: 0.75rem;
-‎            background: #238636;
-‎            color: white;
-‎            padding: 5px 10px;
-‎            border-radius: 12px;
-‎            cursor: pointer;
-‎            border: none;
-‎            font-weight: bold;
-‎            transition: background 0.2s;
-‎        }
-‎
-‎        .status-badge:hover {
-‎            background: #2ea043;
-‎        }
-‎
-‎        /* Chat Container & Welcome Screen */
-‎        #chat-container {
-‎            flex: 1;
-‎            overflow-y: auto;
-‎            padding: 20px;
-‎            display: flex;
-‎            flex-direction: column;
-‎            gap: 15px;
-‎            align-items: center;
-‎        }
-‎
-‎        .welcome-screen {
-‎            display: flex;
-‎            flex-direction: column;
-‎            align-items: center;
-‎            justify-content: center;
-‎            flex: 1;
-‎            text-align: center;
-‎            gap: 12px;
-‎            max-width: 500px;
-‎            margin: auto;
-‎        }
-‎
-‎        .sparkle-icon {
-‎            width: 48px;
-‎            height: 48px;
-‎            background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
-‎            clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
-‎            margin-bottom: 5px;
-‎        }
-‎
-‎        .welcome-title {
-‎            font-size: 2rem;
-‎            font-weight: 400;
-‎            color: var(--text-color);
-‎            line-height: 1.3;
-‎        }
-‎
-‎        .powered-by {
-‎            font-size: 0.9rem;
-‎            color: var(--accent-color);
-‎            font-weight: 500;
-‎            letter-spacing: 0.5px;
-‎        }
-‎
-‎        /* Active chat message styles */
-‎        .message-list-inner {
-‎            width: 100%;
-‎            max-width: 800px;
-‎            display: flex;
-‎            flex-direction: column;
-‎            gap: 15px;
-‎        }
-‎
-‎        .message {
-‎            max-width: 85%;
-‎            padding: 12px 16px;
-‎            border-radius: 12px;
-‎            line-height: 1.5;
-‎            word-wrap: break-word;
-‎            font-size: 0.95rem;
-‎        }
-‎
-‎        .user-message {
-‎            background-color: var(--user-bubble);
-‎            color: white;
-‎            align-self: flex-end;
-‎            border-bottom-right-radius: 2px;
-‎        }
-‎
-‎        .ai-message {
-‎            background-color: var(--ai-bubble);
-‎            color: var(--text-color);
-‎            align-self: flex-start;
-‎            border-bottom-left-radius: 2px;
-‎            border: 1px solid var(--border-color);
-‎        }
-‎
-‎        .tts-btn {
-‎            background: none;
-‎            border: none;
-‎            color: var(--accent-color);
-‎            cursor: pointer;
-‎            font-size: 0.8rem;
-‎            margin-top: 8px;
-‎            display: inline-flex;
-‎            align-items: center;
-‎            gap: 4px;
-‎        }
-‎
-‎        .loading-message {
-‎            color: var(--text-secondary);
-‎            font-style: italic;
-‎        }
-‎
-‎        /* Floating Input Bar (Pill design) */
-‎        #input-container {
-‎            padding: 15px 20px 25px 20px;
-‎            display: flex;
-‎            justify-content: center;
-‎            width: 100%;
-‎        }
-‎
-‎        .input-pill {
-‎            background-color: var(--input-bg);
-‎            border: 1px solid var(--border-color);
-‎            border-radius: 28px;
-‎            padding: 10px 15px;
-‎            width: 100%;
-‎            max-width: 750px;
-‎            display: flex;
-‎            flex-direction: column;
-‎            gap: 8px;
-‎            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-‎        }
-‎
-‎        .input-top-row {
-‎            display: flex;
-‎            align-items: center;
-‎            gap: 10px;
-‎        }
-‎
-‎        #user-input {
-‎            flex: 1;
-‎            background: transparent;
-‎            border: none;
-‎            color: var(--text-color);
-‎            font-size: 1rem;
-‎            outline: none;
-‎            resize: none;
-‎            max-height: 100px;
-‎            padding: 4px 0;
-‎        }
-‎
-‎        .tool-btn {
-‎            background: none;
-‎            border: none;
-‎            color: var(--text-color);
-‎            width: 36px;
-‎            height: 36px;
-‎            border-radius: 50%;
-‎            display: flex;
-‎            align-items: center;
-‎            justify-content: center;
-‎            cursor: pointer;
-‎            font-size: 1.1rem;
-‎            transition: background 0.2s;
-‎        }
-‎
-‎        .tool-btn:hover {
-‎            background: rgba(255,255,255,0.08);
-‎        }
-‎
-‎        .tool-btn.recording {
-‎            background: var(--danger-color);
-‎            color: white;
-‎            animation: pulse 1.5s infinite;
-‎        }
-‎
-‎        .audio-wave-btn {
-‎            background-color: #3b82f6;
-‎            color: white;
-‎            width: 38px;
-‎            height: 38px;
-‎            border-radius: 50%;
-‎            border: none;
-‎            display: flex;
-‎            align-items: center;
-‎            justify-content: center;
-‎            cursor: pointer;
-‎            font-size: 1rem;
-‎        }
-‎
-‎        .audio-wave-btn:hover {
-‎            background-color: #2563eb;
-‎        }
-‎
-‎        @keyframes pulse {
-‎            0% { transform: scale(1); }
-‎            50% { transform: scale(1.08); }
-‎            100% { transform: scale(1); }
-‎        }
-‎
-‎        .limit-info {
-‎            font-size: 0.75rem;
-‎            color: var(--text-secondary);
-‎            padding-left: 5px;
-‎            display: flex;
-‎            justify-content: space-between;
-‎            align-items: center;
-‎            border-bottom: 1px solid rgba(255,255,255,0.05);
-‎            padding-bottom: 6px;
-‎            margin-bottom: 2px;
-‎        }
-‎
-‎        .limit-info span span {
-‎            color: var(--accent-color);
-‎        }
-‎    </style>
-‎</head>
-‎<body>
-‎
-‎    <!-- Sidebar Drawer -->
-‎    <div id="drawer" class="closed">
-‎        <div class="drawer-header">
-‎            <h2>Chats</h2>
-‎            <button class="drawer-toggle" onclick="toggleDrawer()">✕</button>
-‎        </div>
-‎        <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
-‎        <div class="chat-history-list" id="history-list">
-‎            <div class="history-item" onclick="loadChatSession('JUPEB Govt')">JUPEB Government Prep</div>
-‎            <div class="history-item" onclick="loadChatSession('Afrobeats')">Afrobeats Lyrics: Before They Know</div>
-‎        </div>
-‎        <div class="user-profile-section">
-‎            <div class="avatar">R</div>
-‎            <div>
-‎                <div style="font-weight:bold;">Rufai Ikhlas Ajibola</div>
-‎                <div style="font-size: 0.75rem; color: var(--text-secondary);">KLASH WORLD Owner</div>
-‎            </div>
-‎        </div>
-‎    </div>
-‎
-‎    <!-- Main Chat Content -->
-‎    <div class="main-content">
-‎        <header>
-‎            <div class="header-left">
-‎                <button class="drawer-toggle" onclick="toggleDrawer()">☰</button>
-‎                <button class="model-selector">KlashGPT 3.8 Flash ▾</button>
-‎            </div>
-‎            <div class="header-right">
-‎                <!-- Key Bucket Quick-Switch Button -->
-‎                <button id="key-status" class="status-badge" onclick="manualRotateKey()" title="Tap to switch key bucket">Key 1 Active 🪣</button>
-‎                <div class="avatar" style="width:30px;height:30px;font-size:0.85rem;">R</div>
-‎            </div>
-‎        </header>
-‎
-‎        <div id="chat-container">
-‎            <div class="welcome-screen" id="welcome-screen">
-‎                <div class="sparkle-icon"></div>
-‎                <div class="welcome-title">Hi KLASH, what's on your mind?</div>
-‎                <div class="powered-by">Powered by Rufai Ikhlas Ajibola</div>
-‎            </div>
-‎            <div class="message-list-inner" id="message-list"></div>
-‎        </div>
-‎
-‎        <div id="input-container">
-‎            <div class="input-pill">
-‎                <div class="limit-info">
-‎                    <span>KlashGPT WORLD Active</span>
-‎                    <span>v3.8 Flash</span>
-‎                </div>
-‎                <div class="input-top-row">
-‎                    <input type="file" id="file-upload" accept="image/*,video/*,audio/*,.pdf,.txt" style="display: none;" onchange="handleFileUpload(event)">
-‎                    <button class="tool-btn" onclick="document.getElementById('file-upload').click()" title="Attach File">＋</button>
-‎                    <textarea id="user-input" placeholder="Ask KlashGPT" rows="1"></textarea>
-‎                    <button id="mic-btn" class="tool-btn" onclick="toggleVoiceInput()" title="Voice Input">🎤</button>
-‎                    <button class="audio-wave-btn" onclick="sendMessage()" title="Send">🚀</button>
-‎                </div>
-‎            </div>
-‎        </div>
-‎    </div>
-‎
-‎    <script>
-‎        // --- API KEY POOL & BUCKET SYSTEM ---
-‎        let apiKeys = [
-‎            "AQ.Ab8RN6IG1MjoIR04d8jpu7v4wm09NvFzWCqcyLf_jzVCe_YXLA", 
-‎            "AQ.Ab8RN6Jnbu7NJMbcbPgU0B7Vxtfi-0w_ FLnxOinY3dAQYJnivQ", 
-‎            "AQ.Ab8RN6L1V5AC2cL8CSMrcxlFd11O3_GDuOab-Qf_yWVMso02pg"  
-‎        ];
-‎
-‎        let currentKeyIndex = 0;
-‎        let attachedMediaData = null;
-‎
-‎        function getActiveKey() {
-‎            if (apiKeys.length === 0) return "";
-‎            return apiKeys[currentKeyIndex % apiKeys.length];
-‎        }
-‎
-‎        function manualRotateKey() {
-‎            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-‎            document.getElementById('key-status').innerText = `Key ${currentKeyIndex + 1} Active 🪣`;
-‎        }
-‎
-‎        function rotateKey() {
-‎            if (apiKeys.length <= 1) return;
-‎            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
-‎            document.getElementById('key-status').innerText = `Key ${currentKeyIndex + 1} Active 🪣`;
-‎        }
-‎
-‎        // --- DRAWER & HISTORY MANAGEMENT ---
-‎        function toggleDrawer() {
-‎            const drawer = document.getElementById('drawer');
-‎            drawer.classList.toggle('closed');
-‎        }
-‎
-‎        function startNewChat() {
-‎            chatHistory = [
-‎                { role: "model", parts: [{ text: "Hello KLASH! I am KlashGPT, created and owned by Rufai Ikhlas Ajibola. How can I assist you today?" }] }
-‎            ];
-‎            document.getElementById('welcome-screen').style.display = 'flex';
-‎            document.getElementById('message-list').innerHTML = '';
-‎            toggleDrawer();
-‎        }
-‎
-‎        function loadChatSession(title) {
-‎            startNewChat();
-‎            userInput.value = `Continue our discussion on: ${title}`;
-‎            toggleDrawer();
-‎        }
-‎
-‎        // --- MEDIA UPLOAD HANDLER ---
-‎        function handleFileUpload(event) {
-‎            const file = event.target.files[0];
-‎            if (!file) return;
-‎
-‎            const reader = new FileReader();
-‎            reader.onload = function(e) {
-‎                const base64String = e.target.result.split(',')[1];
-‎                attachedMediaData = {
-‎                    inlineData: {
-‎                        mimeType: file.type || "image/jpeg",
-‎                        data: base64String
-‎                    }
-‎                };
-‎                userInput.value += ` [Attached media: ${file.name}] `;
-‎            };
-‎            reader.readAsDataURL(file);
-‎        }
-‎
-‎        // --- VOICE INPUT ---
-‎        let recognition = null;
-‎        let isRecording = false;
-‎
-‎        async function toggleVoiceInput() {
-‎            const micBtn = document.getElementById('mic-btn');
-‎            if (isRecording) {
-‎                if (recognition) recognition.stop();
-‎                stopVoiceUI();
-‎                return;
-‎            }
-‎
-‎            try {
-‎                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-‎                stream.getTracks().forEach(track => track.stop());
-‎                startSpeechRecognition();
-‎            } catch (err) {
-‎                alert("Microphone access denied or not supported.");
-‎                stopVoiceUI();
-‎            }
-‎        }
-‎
-‎        function startSpeechRecognition() {
-‎            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-‎                alert("Speech recognition not supported on this browser.");
-‎                return;
-‎            }
-‎            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-‎            recognition = new SpeechRecognition();
-‎            recognition.continuous = false;
-‎            recognition.interimResults = false;
-‎            recognition.lang = 'en-US';
-‎
-‎            const micBtn = document.getElementById('mic-btn');
-‎
-‎            recognition.onstart = function() {
-‎                isRecording = true;
-‎                micBtn.classList.add('recording');
-‎            };
-‎            recognition.onresult = function(event) {
-‎                userInput.value += (userInput.value ? ' ' : '') + event.results[0][0].transcript;
-‎                stopVoiceUI();
-‎            };
-‎            recognition.onerror = () => stopVoiceUI();
-‎            recognition.onend = () => stopVoiceUI();
-‎            recognition.start();
-‎        }
-‎
-‎        function stopVoiceUI() {
-‎            isRecording = false;
-‎            document.getElementById('mic-btn').classList.remove('recording');
-‎        }
-‎
-‎        // --- TEXT-TO-SPEECH ---
-‎        function speakText(buttonElement) {
-‎            const messageDiv = buttonElement.parentElement;
-‎            const clone = messageDiv.cloneNode(true);
-‎            const btn = clone.querySelector('button');
-‎            if (btn) btn.remove();
-‎            const textToSpeak = clone.textContent || clone.innerText;
-‎
-‎            if ('speechSynthesis' in window) {
-‎                window.speechSynthesis.cancel();
-‎                window.speechSynthesis.speak(new SpeechSynthesisUtterance(textToSpeak));
-‎            }
-‎        }
-‎
-‎        // --- CHAT LOGIC WITH SYSTEM INSTRUCTION ---
-‎        const chatContainer = document.getElementById('chat-container');
-‎        const messageList = document.getElementById('message-list');
-‎        const welcomeScreen = document.getElementById('welcome-screen');
-‎        const userInput = document.getElementById('user-input');
-‎
-‎        let chatHistory = [
-‎            { role: "model", parts: [{ text: "Hello KLASH! I am KlashGPT, created and owned by Rufai Ikhlas Ajibola. How can I assist you today?" }] }
-‎        ];
-‎
-‎        async function sendMessage() {
-‎            const text = userInput.value.trim();
-‎            if (!text && !attachedMediaData) return;
-‎
-‎            welcomeScreen.style.display = 'none';
-‎
-‎            let userParts = [];
-‎            if (text) userParts.push({ text: text });
-‎            if (attachedMediaData) userParts.push(attachedMediaData);
-‎
-‎            appendMessage(text || "[Media Attached]", 'user-message');
-‎            userInput.value = '';
-‎            userInput.style.height = 'auto';
-‎
-‎            chatHistory.push({ role: "user", parts: userParts });
-‎            attachedMediaData = null;
-‎
-‎            const loadingId = appendMessage("Thinking...", 'ai-message loading-message');
-‎
-‎            let success = false;
-‎            let attempts = 0;
-‎            let responseText = "";
-‎
-‎            while (attempts < apiKeys.length && !success) {
-‎                const apiKey = getActiveKey();
-‎                if (!apiKey) break;
-‎                
-‎                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
-‎
-‎                // Hardcoded System Instruction so it knows it is KlashGPT owned by KLASH
-‎                const payload = {
-‎                    system_instruction: {
-‎                        parts: [{ text: "You are KlashGPT WORLD, a custom AI assistant created, built, and exclusively owned by Rufai Ikhlas Ajibola (also known as KLASH). Never identify yourself as a generic model or mention Google; you belong entirely to KLASH." }]
-‎                    },
-‎                    contents: chatHistory
-‎                };
-‎
-‎                try {
-‎                    const response = await fetch(url, {
-‎                        method: 'POST',
-‎                        headers: { 'Content-Type': 'application/json' },
-‎                        body: JSON.stringify(payload)
-‎                    });
-‎
-‎                    const data = await response.json();
-‎
-‎                    if (response.ok && data.candidates && data.candidates[0].content) {
-‎                        responseText = data.candidates[0].content.parts[0].text;
-‎                        success = true;
-‎                    } else {
-‎                        rotateKey();
-‎                        attempts++;
-‎                    }
-‎                } catch (error) {
-‎                    rotateKey();
-‎                    attempts++;
-‎                }
-‎            }
-‎
-‎            document.getElementById(loadingId).remove();
-‎
-‎            if (success) {
-‎                appendMessageWithTTS(responseText, 'ai-message');
-‎                chatHistory.push({ role: "model", parts: [{ text: responseText }] });
-‎            } else {
-‎                appendMessage("Error: All API keys in your bucket failed. Tap the key badge to switch keys!", 'ai-message');
-‎            }
-‎        }
-‎
-‎        function appendMessage(text, className) {
-‎            const msgDiv = document.createElement('div');
-‎            msgDiv.className = `message ${className}`;
-‎            msgDiv.id = 'msg-' + Date.now() + Math.random();
-‎            msgDiv.innerText = text;
-‎            messageList.appendChild(msgDiv);
-‎            chatContainer.scrollTop = chatContainer.scrollHeight;
-‎            return msgDiv.id;
-‎        }
-‎
-‎        function appendMessageWithTTS(text, className) {
-‎            const msgDiv = document.createElement('div');
-‎            msgDiv.className = `message ${className}`;
-‎            msgDiv.id = 'msg-' + Date.now() + Math.random();
-‎            msgDiv.innerHTML = `${escapeHtml(text)}<br><button class="tts-btn" onclick="speakText(this)">🔊 Read Aloud</button>`;
-‎            messageList.appendChild(msgDiv);
-‎            chatContainer.scrollTop = chatContainer.scrollHeight;
-‎            return msgDiv.id;
-‎        }
-‎
-‎        function escapeHtml(text) {
-‎            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-‎        }
-‎
-‎        userInput.addEventListener('input', function() {
-‎            this.style.height = 'auto';
-‎            this.style.height = (this.scrollHeight) + 'px';
-‎        });
-‎
-‎        userInput.addEventListener('keydown', function(e) {
-‎            if (e.key === 'Enter' && !e.shiftKey) {
-‎                e.preventDefault();
-‎                sendMessage();
-‎            }
-‎        });
-‎    </script>
-‎</body>
-‎</html>
-‎
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KlashGPT WORLD</title>
+    <style>
+        :root {
+            --bg-color: #07090e;
+            --chat-bg: #0d1117;
+            --input-bg: #161b22;
+            --text-color: #e6edfd;
+            --text-secondary: #8b949e;
+            --user-bubble: #238636;
+            --ai-bubble: #161b22;
+            --border-color: #30363d;
+            --accent-color: #58a6ff;
+            --danger-color: #da3633;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Drawer */
+        #drawer {
+            width: 280px;
+            background-color: var(--chat-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        #drawer.closed {
+            transform: translateX(-100%);
+            position: absolute;
+            height: 100%;
+        }
+
+        .drawer-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-header h2 {
+            font-size: 1rem;
+            color: var(--accent-color);
+        }
+
+        .new-chat-btn {
+            background: var(--user-bubble);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 15px;
+            font-size: 0.9rem;
+        }
+
+        .new-chat-btn:hover {
+            background: #2ea043;
+        }
+
+        .chat-history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            background: var(--bg-color);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item:hover {
+            background: #3c444d;
+        }
+
+        .user-profile-section {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #db61a2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        header {
+            background-color: transparent;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .drawer-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .model-selector {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Key Bucket Button */
+        .status-badge {
+            font-size: 0.75rem;
+            background: #238636;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .status-badge:hover {
+            background: #2ea043;
+        }
+
+        /* Chat Container & Welcome Screen */
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            gap: 12px;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .sparkle-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570);
+            clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
+            margin-bottom: 5px;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--text-color);
+            line-height: 1.3;
+        }
+
+        .powered-by {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Active chat message styles */
+        .message-list-inner {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+        }
+
+        .user-message {
+            background-color: var(--user-bubble);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai-message {
+            background-color: var(--ai-bubble);
+            color: var(--text-color);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tts-btn {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .loading-message {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Floating Input Bar (Pill design) */
+        #input-container {
+            padding: 15px 20px 25px 20px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .input-pill {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 10px 15px;
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .input-top-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            padding: 4px 0;
+        }
+
+        .tool-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .tool-btn.recording {
+            background: var(--danger-color);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .audio-wave-btn {
+            background-color: #3b82f6;
+            color: white;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .audio-wave-btn:hover {
+            background-color: #2563eb;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        .limit-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding-left: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 6px;
+            margin-bottom: 2px;
+        }
+
+        .limit-info span span {
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Drawer -->
+    <div id="drawer" class="closed">
+        <div class="drawer-header">
+            <h2>Chats</h2>
+            <button class="drawer-toggle" onclick="toggleDrawer()">✕</button>
+        </div>
+        <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
+        <div class="chat-history-list" id="history-list">
+            <div class="history-item" onclick="loadChatSession('JUPEB Govt')">JUPEB Government Prep</div>
+            <div class="history-item" onclick="loadChatSession('Afrobeats')">Afrobeats Lyrics: Before They Know</div>
+        </div>
+        <div class="user-profile-section">
+            <div class="avatar">R</div>
+            <div>
+                <div style="font-weight:bold;">Rufai Ikhlas Ajibola</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">KLASH WORLD Owner</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Content -->
+    <div class="main-content">
+        <header>
+            <div class="header-left">
+                <button class="drawer-toggle" onclick="toggleDrawer()">☰</button>
+                <button class="model-selector">KlashGPT 3.8 Flash ▾</button>
+            </div>
+            <div class="header-right">
+                <!-- Key Bucket Quick-Switch Button -->
+                <button id="key-status" class="status-badge" onclick="manualRotateKey()" title="Tap to switch key bucket">Key 1 Active 🪣</button>
+                <div class="avatar" style="width:30px;height:30px;font-size:0.85rem;">R</div>
+            </div>
+        </header>
+
+        <div id="chat-container">
+            <div class="welcome-screen" id="welcome-screen">
+                <div class="sparkle-icon"></div>
+                <div class="welcome-title">Hi KLASH, what's on your mind?</div>
+                <div class="powered-by">Powered by Rufai Ikhlas Ajibola</div>
+            </div>
+            <div class="message-list-inner" id="message-list"></div>
+        </div>
+
+        <div id="input-container">
+            <div class="input-pill">
+                <div class="limit-info">
+                    <span>KlashGPT WORLD Active</span>
+                    <span>v3.8 Flash</span>
+                </div>
+                <div class="input-top-row">
+                    <input type="file" id="file-upload" accept="image/*,video/*,audio/*,.pdf,.txt" style="display: none;" onchange="handleFileUpload(event)">
+                    <button class="tool-btn" onclick="document.getElementById('file-upload').click()" title="Attach File">＋</button>
+                    <textarea id="user-input" placeholder="Ask KlashGPT" rows="1"></textarea>
+                    <button id="mic-btn" class="tool-btn" onclick="toggleVoiceInput()" title="Voice Input">🎤</button>
+                    <button class="audio-wave-btn" onclick="sendMessage()" title="Send">🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- API KEY POOL & BUCKET SYSTEM ---
+        let apiKeys = [
+            "AQ.Ab8RN6IG1MjoIR04d8jpu7v4wm09NvFzWCqcyLf_jzVCe_YXLA", 
+            "AQ.Ab8RN6Jnbu7NJMbcbPgU0B7Vxtfi-0w_FLnxOinY3dAQYJnivQ", 
+            "AQ.Ab8RN6L1V5AC2cL8CSMrcxlFd11O3_GDuOab-Qf_yWVMso02pg"  
+        ];
+
+        let currentKeyIndex = 0;
+        let attachedMediaData = null;
+
+        function getActiveKey() {
+            if (apiKeys.length === 0) return "";
+            return apiKeys[currentKeyIndex % apiKeys.length];
+        }
+
+        function manualRotateKey() {
+            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+            document.getElementById('key-status').innerText = `Key ${currentKeyIndex + 1} Active 🪣`;
+        }
+
+        function rotateKey() {
+            if (apiKeys.length <= 1) return;
+            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+            document.getElementById('key-status').innerText = `Key ${currentKeyIndex + 1} Active 🪣`;
+        }
+
+        // --- DRAWER & HISTORY MANAGEMENT ---
+        function toggleDrawer() {
+            const drawer = document.getElementById('drawer');
+            drawer.classList.toggle('closed');
+        }
+
+        function startNewChat() {
+            chatHistory = [
+                { role: "model", parts: [{ text: "Hello KLASH! I am KlashGPT, created and owned by Rufai Ikhlas Ajibola. How can I assist you today?" }] }
+            ];
+            document.getElementById('welcome-screen').style.display = 'flex';
+            document.getElementById('message-list').innerHTML = '';
+            toggleDrawer();
+        }
+
+        function loadChatSession(title) {
+            startNewChat();
+            userInput.value = `Continue our discussion on: ${title}`;
+            toggleDrawer();
+        }
+
+        // --- MEDIA UPLOAD HANDLER ---
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                attachedMediaData = {
+                    inlineData: {
+                        mimeType: file.type || "image/jpeg",
+                        data: base64String
+                    }
+                };
+                userInput.value += ` [Attached media: ${file.name}] `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- VOICE INPUT ---
+        let recognition = null;
+        let isRecording = false;
+
+        async function toggleVoiceInput() {
+            const micBtn = document.getElementById('mic-btn');
+            if (isRecording) {
+                if (recognition) recognition.stop();
+                stopVoiceUI();
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                startSpeechRecognition();
+            } catch (err) {
+                alert("Microphone access denied or not supported.");
+                stopVoiceUI();
+            }
+        }
+
+        function startSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert("Speech recognition not supported on this browser.");
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            const micBtn = document.getElementById('mic-btn');
+
+            recognition.onstart = function() {
+                isRecording = true;
+                micBtn.classList.add('recording');
+            };
+            recognition.onresult = function(event) {
+                userInput.value += (userInput.value ? ' ' : '') + event.results[0][0].transcript;
+                stopVoiceUI();
+            };
+            recognition.onerror = () => stopVoiceUI();
+            recognition.onend = () => stopVoiceUI();
+            recognition.start();
+        }
+
+        function stopVoiceUI() {
+            isRecording = false;
+            document.getElementById('mic-btn').classList.remove('recording');
+        }
+
+        // --- TEXT-TO-SPEECH ---
+        function speakText(buttonElement) {
+            const messageDiv = buttonElement.parentElement;
+            const clone = messageDiv.cloneNode(true);
+            const btn = clone.querySelector('button');
+            if (btn) btn.remove();
+            const textToSpeak = clone.textContent || clone.innerText;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(textToSpeak));
+            }
+        }
+
+        // --- CHAT LOGIC WITH SYSTEM INSTRUCTION ---
+        const chatContainer = document.getElementById('chat-container');
+        const messageList = document.getElementById('message-list');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const userInput = document.getElementById('user-input');
+
+        let chatHistory = [
+            { role: "model", parts: [{ text: "Hello KLASH! I am KlashGPT, created and owned by Rufai Ikhlas Ajibola. How can I assist you today?" }] }
+        ];
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text && !attachedMediaData) return;
+
+            welcomeScreen.style.display = 'none';
+
+            let userParts = [];
+            if (text) userParts.push({ text: text });
+            if (attachedMediaData) userParts.push(attachedMediaData);
+
+            appendMessage(text || "[Media Attached]", 'user-message');
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            chatHistory.push({ role: "user", parts: userParts });
+            attachedMediaData = null;
+
+            const loadingId = appendMessage("Thinking...", 'ai-message loading-message');
+
+            let success = false;
+            let attempts = 0;
+            let responseText = "";
+
+            while (attempts < apiKeys.length && !success) {
+                const apiKey = getActiveKey();
+                if (!apiKey) break;
+                
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    system_instruction: {
+                        parts: [{ text: "You are KlashGPT WORLD, a custom AI assistant created, built, and exclusively owned by Rufai Ikhlas Ajibola (also known as KLASH). Never identify yourself as a generic model or mention Google; you belong entirely to KLASH." }]
+                    },
+                    contents: chatHistory
+                };
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.candidates && data.candidates[0].content) {
+                        responseText = data.candidates[0].content.parts[0].text;
+                        success = true;
+                    } else {
+                        rotateKey();
+                        attempts++;
+                    }
+                } catch (error) {
+                    rotateKey();
+                    attempts++;
+                }
+            }
+
+            document.getElementById(loadingId).remove();
+
+            if (success) {
+                appendMessageWithTTS(responseText, 'ai-message');
+                chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+            } else {
+                appendMessage("Error: All API keys in your bucket failed. Tap the key badge to switch keys!", 'ai-message');
+            }
+        }
+
+        function appendMessage(text, className) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            msgDiv.id = 'msg-' + Date.now() + Math.random();
+            msgDiv.innerText = text;
+            messageList.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return msgDiv.id;
+        }
+
+        function appendMessageWithTTS(text, className) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            msgDiv.id = 'msg-' + Date.now() + Math.random();
+            msgDiv.innerHTML = `${escapeHtml(text)}<br><button class="tts-btn" onclick="speakText(this)">🔊 Read Aloud</button>`;
+            messageList.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return msgDiv.id;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
